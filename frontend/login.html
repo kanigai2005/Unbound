@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Command Gateway</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-200 h-screen flex justify-center items-center font-sans">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Gateway Access</h1>
+        <form id="loginForm">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">API Key</label>
+                <input type="text" id="apiKeyInput" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono" placeholder="Paste your key here">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition">
+                Enter Console
+            </button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if(key) {
+                localStorage.setItem('gateway_key', key);
+                window.location.href = '/';
+            }
+        });
+        if(localStorage.getItem('gateway_key')) window.location.href = '/';
+    </script>
+</body>
+</html>

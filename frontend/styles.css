@@ -1,0 +1,9 @@
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+
+[x-cloak] { display: none !important; }
+
+/* Dark mode scrollbar for logs */
+.terminal-scroll::-webkit-scrollbar { width: 8px; }
+.terminal-scroll::-webkit-scrollbar-track { background: #1f2937; }
+.terminal-scroll::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+.terminal-scroll::-webkit-scrollbar-thumb:hover { background: #6b7280; }

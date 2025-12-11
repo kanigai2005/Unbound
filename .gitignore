@@ -1,0 +1,23 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database (Sensitive Data)
+*.db
+*.sqlite3
+gateway.db
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
