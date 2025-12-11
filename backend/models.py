@@ -18,14 +18,21 @@ class User(SQLModel, table=True):
 class Rule(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     pattern: str
-    action: str 
+    action: str # "AUTO_ACCEPT", "AUTO_REJECT", "REQUIRE_APPROVAL"
 
 class AuditLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    # FIX: Added foreign_key to link this to the User table
-    user_id: int = Field(foreign_key="user.id") 
+    user_id: int = Field(foreign_key="user.id")
     command_text: str
     action_taken: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+# NEW: Approval Request Table
+class ApprovalRequest(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    command_text: str
+    status: str = "PENDING" # PENDING, APPROVED, REJECTED, USED
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 # --- API INPUT MODELS ---
@@ -56,6 +63,8 @@ def create_db_and_seeds():
             session.add(admin)
             
             seeds = [
+                # Critical commands now require approval
+                Rule(pattern=r"sudo\s+", action="REQUIRE_APPROVAL"),
                 Rule(pattern=r":\(\)\{ :\|:& \};:", action="AUTO_REJECT"),
                 Rule(pattern=r"rm\s+-rf\s+/", action="AUTO_REJECT"),
                 Rule(pattern=r"mkfs\.", action="AUTO_REJECT"),

@@ -7,6 +7,7 @@ function app() {
         history: [],
         rules: [],
         adminLogs: [],
+        approvals: [],
         newRulePattern: '',
         newRuleAction: 'AUTO_REJECT',
         newUserName: '',
@@ -21,7 +22,8 @@ function app() {
             } else if (this.apiKey) {
                 await this.loadData();
                 if(this.user.role === 'admin') {
-                    setInterval(() => this.refreshAdminLogs(), 5000);
+                    // Poll for new data every 5 seconds
+                    setInterval(() => this.refreshAdminData(), 5000);
                 }
             }
         },
@@ -56,13 +58,15 @@ function app() {
                 if (this.user.role === 'admin') {
                     this.rules = await this.api('/admin/rules');
                     this.adminLogs = await this.api('/admin/audit');
+                    this.approvals = await this.api('/admin/approvals');
                 }
             }
         },
 
-        async refreshAdminLogs() {
+        async refreshAdminData() {
             if (this.user.role === 'admin') {
                 this.adminLogs = await this.api('/admin/audit');
+                this.approvals = await this.api('/admin/approvals');
             }
         },
 
@@ -74,7 +78,11 @@ function app() {
             const res = await this.api('/commands', 'POST', { command_text: cmd });
             if (res) {
                 this.user.credits = res.new_balance;
-                let color = res.status === 'executed' ? 'text-green-400' : 'text-red-400';
+                
+                let color = 'text-red-400';
+                if(res.status === 'executed') color = 'text-green-400';
+                if(res.status === 'pending') color = 'text-yellow-400';
+
                 this.sessionLogs.unshift({ cmd: cmd, msg: res.message, color: color });
                 this.loadData();
             }
@@ -86,9 +94,8 @@ function app() {
             if (res) { this.newRulePattern = ''; this.loadData(); }
         },
 
-        // NEW: Delete Rule Logic
         async deleteRule(id) {
-            if(!confirm("Are you sure you want to delete this rule?")) return;
+            if(!confirm("Delete this rule?")) return;
             const res = await this.api(`/admin/rules/${id}`, 'DELETE');
             if (res) this.loadData();
         },
@@ -99,8 +106,29 @@ function app() {
             if (res) { this.lastCreatedUser = res.api_key; this.newUserName = ''; }
         },
 
-        formatDate(isoStr) {
-            return new Date(isoStr).toLocaleTimeString();
+        // NEW: Manage Approvals
+        async manageApproval(id, action) {
+            const res = await this.api(`/admin/approvals/${id}/${action}`, 'POST');
+            if(res) {
+                // Remove from local list immediately for snappiness
+                this.approvals = this.approvals.filter(a => a.id !== id);
+                this.refreshAdminData();
+            }
+        },
+
+        // --- Helpers ---
+        formatDate(isoStr) { return new Date(isoStr).toLocaleTimeString(); },
+        
+        getActionColor(action) {
+            if(action === 'AUTO_ACCEPT') return 'text-green-400';
+            if(action === 'REQUIRE_APPROVAL') return 'text-yellow-400';
+            return 'text-red-400';
+        },
+        
+        getStatusClass(status) {
+            if(status === 'executed') return 'text-green-500';
+            if(status === 'pending_approval') return 'text-yellow-500';
+            return 'text-red-500';
         }
     }
 }
